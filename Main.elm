@@ -5,7 +5,7 @@ import Http
 import Platform.Sub as Sub
 import Json.Encode
 import String exposing (trim, startsWith)
-import SyntaxHighlight exposing (useTheme, monokai, javascript, toBlockHtml)
+import SyntaxHighlight exposing (javascript, toBlockHtml)
 
 import Ports exposing (..)
 
@@ -133,8 +133,7 @@ view model =
           , div [ class "box" ]
             [ case model.output of
               Ok json -> div []
-                [ useTheme monokai
-                , javascript json
+                [ javascript json
                   |> Result.map (toBlockHtml Nothing)
                   |> Result.withDefault (text json)
                 ]

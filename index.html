@@ -1,7 +1,7 @@
 <!doctype html>
 
 <meta charset=utf-8>
-<title>jiq - JSON Incremental jq'er</title>
+<title>jiq - JSON Incremental jq-filterer</title>
 <link href=https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.6.1/slate/bulmaswatch.min.css rel=stylesheet>
 <style>
 input, textarea {
@@ -21,8 +21,15 @@ input, textarea {
   #view .box {
     white-space: pre;
     font-family: monospace;
+    margin-top: 12px;
   }
   #view .error { color: red }
+
+.elmsh { background: inherit }
+.elmsh-js-n { color: palevioletred }
+.elmsh-js-s { color: palegreen }
+.elmsh-js-k { color: orangered }
+.elmsh-js-lk { color: lightblue }
 </style>
 <body>
   <nav class="navbar" role="navigation">
