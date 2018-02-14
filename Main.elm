@@ -1,9 +1,10 @@
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Http
 import Platform.Sub as Sub
 import Json.Encode
-import Array exposing (Array, get, set, push, length)
+import String exposing (trim, startsWith)
 
 import Ports exposing (..)
 
@@ -22,6 +23,7 @@ main =
 type alias Model =
   { tab : Tab
   , input : String
+  , url : Maybe String
   , filter : String
   , output : Result String String
   }
@@ -34,6 +36,7 @@ init {input, filter} =
   let model =
     { tab = View
     , input = input
+    , url = Nothing
     , filter = filter
     , output = Ok ""
     }
@@ -47,7 +50,8 @@ init {input, filter} =
 
 type Msg
   = SelectTab Tab
-  | SetInput String
+  | SetInput Bool String
+  | InputURLResult (Result Http.Error String)
   | SetFilter String
   | GotResult String
   | GotError String
@@ -56,10 +60,21 @@ update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     SelectTab t -> ({ model | tab = t }, Cmd.none)
-    SetInput v ->
-      ( { model | input = v }
-      , applyfilter (v, model.filter)
-      )
+    SetInput manual v ->
+      if v |> startsWith "http"
+      then
+        ( { model | url = Just <| trim v }
+        , Http.getString (trim v)
+          |> Http.send InputURLResult
+        )
+      else
+        ( { model | input = v, url = if manual then Nothing else model.url }
+        , applyfilter (model.input, v)
+        )
+    InputURLResult res ->
+      case res of
+        Ok json -> update (SetInput False json) model
+        Err err -> update (SetInput False (toString err)) model
     SetFilter v ->
       ( { model | filter = v }
       , applyfilter (model.input, v)
@@ -106,7 +121,10 @@ view model =
     , case model.tab of
       Input ->
         div [ id "input" ]
-          [ textarea [ class "textarea", onInput SetInput ] [ text model.input ]
+          [ div [ class "container has-text-centered" ]
+            [ text <| Maybe.withDefault "" model.url
+            ]
+          , textarea [ class "textarea", onInput (SetInput True) ] [ text model.input ]
           ]
       View ->
         div [ id "view", class "panel" ]

@@ -14,7 +14,7 @@ app.ports.applyfilter.subscribe(debounce(applyfilter, 600))
 
 function applyfilter ([input, filter]) {
   if (input === '') {
-    app.ports.send('')
+    app.ports.gotresult.send('')
     return
   }
 
