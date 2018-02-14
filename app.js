@@ -10,7 +10,7 @@ const app = Elm.Main.embed(target, {
   filter: localStorage.getItem('filter') || '.'
 })
 
-app.ports.applyfilter.subscribe(debounce(applyfilter, 600))
+app.ports.applyfilter.subscribe(debounce(applyfilter, 1000))
 
 function applyfilter ([input, filter]) {
   if (input === '') {

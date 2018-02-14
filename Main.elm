@@ -5,6 +5,7 @@ import Http
 import Platform.Sub as Sub
 import Json.Encode
 import String exposing (trim, startsWith)
+import SyntaxHighlight exposing (useTheme, monokai, javascript, toBlockHtml)
 
 import Ports exposing (..)
 
@@ -131,7 +132,12 @@ view model =
           [ input [ class "input", onInput SetFilter, value model.filter ] []
           , div [ class "box" ]
             [ case model.output of
-              Ok json -> text json
+              Ok json -> div []
+                [ useTheme monokai
+                , javascript json
+                  |> Result.map (toBlockHtml Nothing)
+                  |> Result.withDefault (text json)
+                ]
               Err err -> div [ class "error" ] [ text err ]
             ]
           ]
