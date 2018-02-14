@@ -1,10 +1,6 @@
 port module Ports exposing (..)
 
-port applyfilter_ : (Int, JSONString, FilterString) -> Cmd msg
+port applyfilter : (String, String) -> Cmd msg
 
-port gotresult : ((Int, JSONString) -> msg) -> Sub msg
-
-applyfilter args = applyfilter_ (Debug.log "jq" args) 
-
-type alias FilterString = String
-type alias JSONString = String
+port gotresult : (String -> msg) -> Sub msg
+port goterror : (String -> msg) -> Sub msg

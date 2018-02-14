@@ -1,13 +1,13 @@
 /* global Elm */
 
 const debounce = require('debounce')
-const jq = require('jq-web/jq.wasm.min.js')
+const jq = require('jq-web/jq.wasm.js')
 
 const target = document.querySelector('main')
 
 const app = Elm.Main.embed(target, {
   input: localStorage.getItem('input') || '',
-  filter: localStorage.getItem('filters') || '.'
+  filter: localStorage.getItem('filter') || '.'
 })
 
 app.ports.applyfilter.subscribe(debounce(applyfilter, 600))
@@ -30,6 +30,6 @@ function applyfilter ([input, filter]) {
     app.ports.goterror.send(e.message)
   }
 
-  localStorage.setItem('filters', filter)
+  localStorage.setItem('filter', filter)
   localStorage.setItem('input', input)
 }

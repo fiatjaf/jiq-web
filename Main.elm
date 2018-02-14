@@ -9,7 +9,7 @@ import Ports exposing (..)
 
 
 main =
-  Html.program
+  Html.programWithFlags
     { init = init
     , view = view
     , update = update
@@ -21,65 +21,25 @@ main =
 
 type alias Model =
   { tab : Tab
-  , input : JSONString
-  , panels : Array Panel
+  , input : String
+  , filter : String
+  , output : Result String String
   }
 
 type Tab = Input | View
 
-type alias Panel =
-  { enabled : Bool
-  , filter : FilterString
-  , output : JSONString
-  }
 
-getfilter : Int -> Array Panel -> String
-getfilter index panels = get index panels |> Maybe.map .filter |> Maybe.withDefault "."
-
-getoutput : Int -> Array Panel -> String
-getoutput index panels = get index panels |> Maybe.map .output |> Maybe.withDefault "."
-
-getinputfor : Int -> Model -> String
-getinputfor index model =
-  case index of
-    0 -> model.input
-    _ -> getoutput (index - 1) model.panels
-
-setfilter : Int -> String -> Array Panel -> Array Panel
-setfilter index filter panels =
-  case get index panels of
-    Nothing -> panels
-    Just p -> set index { p | filter = filter } panels
-
-enable : Int -> Array Panel -> Array Panel
-enable index panels =
-  case get index panels of
-    Nothing -> panels
-    Just p -> set index { p | enabled = True } panels
-
-disablefrom : Int -> Array Panel -> Array Panel
-disablefrom index panels =
-  Array.indexedMap (\i p -> if i >= index then { p | enabled = False } else p) panels
-
-setoutput : Int -> String -> Array Panel -> Array Panel
-setoutput index output panels =
-  case get index panels of
-    Nothing -> panels
-    Just p -> set index { p | output = output } panels
-
-init : (Model, Cmd Msg)
-init =
+init : {input : String, filter : String} -> (Model, Cmd Msg)
+init {input, filter} =
   let model =
     { tab = View
-    , input = "{\"x\": 23}"
-    , panels = Array.fromList <|
-      [ Panel True "." ""
-      , Panel True "" ""
-      ]
+    , input = input
+    , filter = filter
+    , output = Ok ""
     }
   in
     ( model
-    , applyfilter (0, model.input, (getfilter 0 model.panels))
+    , applyfilter (input, filter)
     )
 
 
@@ -88,8 +48,9 @@ init =
 type Msg
   = SelectTab Tab
   | SetInput String
-  | SetFilter Int String
-  | GotResult (Int, String)
+  | SetFilter String
+  | GotResult String
+  | GotError String
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -97,30 +58,19 @@ update msg model =
     SelectTab t -> ({ model | tab = t }, Cmd.none)
     SetInput v ->
       ( { model | input = v }
-      , applyfilter (0, v, (getfilter 0 model.panels))
+      , applyfilter (v, model.filter)
       )
-    SetFilter i v ->
-      let upd = { model | panels = model.panels |> setfilter i v }
-      in
-        case v of
-          "" -> -- disable all panels next
-            ( { upd | panels = upd.panels
-                |> setoutput i ""
-                |> disablefrom (i + 1)
-              }
-            , Cmd.none
-            )
-          _ -> -- proceed normally
-            ( if length upd.panels == i + 1
-              then -- add a new panel
-                { upd | panels = upd.panels |> push (Panel True "" "") }
-              else -- enable the next panel
-                { upd | panels = upd.panels |> enable (i + 1) }
-            , applyfilter (i, (getinputfor i upd), v)
-            )
-    GotResult (i, v) ->
-      ( { model | panels = setoutput i v model.panels }
-      , applyfilter ((i + 1), v, (getfilter (i + 1) model.panels))
+    SetFilter v ->
+      ( { model | filter = v }
+      , applyfilter (model.input, v)
+      )
+    GotResult v ->
+      ( { model | output = Ok v }
+      , Cmd.none
+      )
+    GotError err ->
+      ( { model | output = Err err }
+      , Cmd.none
       )
 
 
@@ -130,6 +80,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model =
   Sub.batch
     [ gotresult GotResult
+    , goterror GotError
     ]
 
 
@@ -138,7 +89,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
   div []
-    [ div [ class "tabs" ]
+    [ div [ class "tabs is-centered is-boxed" ]
       [ ul []
         [ li [ class <| if model.tab == Input then "is-active" else "" ]
           [ a [ onClick (SelectTab Input) ]
@@ -158,16 +109,13 @@ view model =
           [ textarea [ class "textarea", onInput SetInput ] [ text model.input ]
           ]
       View ->
-         div [ id "panels", class "columns is-multiline" ]
-           <| List.indexedMap viewPanel
-           <| List.filter .enabled
-           <| Array.toList model.panels
-    ]
-
-viewPanel : Int -> Panel -> Html Msg
-viewPanel i {filter, output} =
-  div [ class "panel column" ]
-    [ input [ class "input", onInput (SetFilter i), value filter ] []
-    , div [ class "box" ] [ text output ]
+        div [ id "view", class "panel" ]
+          [ input [ class "input", onInput SetFilter, value model.filter ] []
+          , div [ class "box" ]
+            [ case model.output of
+              Ok json -> text json
+              Err err -> div [ class "error" ] [ text err ]
+            ]
+          ]
     ]
     

@@ -1,10 +1,10 @@
 <!doctype html>
 
 <meta charset=utf-8>
-<title>jq finder</title>
-<link href=https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.6.1/litera/bulmaswatch.min.css rel=stylesheet>
+<title>jiq - JSON Incremental jq'er</title>
+<link href=https://cdnjs.cloudflare.com/ajax/libs/bulmaswatch/0.6.1/slate/bulmaswatch.min.css rel=stylesheet>
 <style>
-input, textarea, .panel {
+input, textarea {
   font-family: monospace;
 }
 
@@ -12,15 +12,23 @@ input, textarea, .panel {
   margin: 23px;
 }
 
-.panel .box {
-  margin-top: 23px;
-}
+#input {}
+  #input textarea {
+    min-height: 500px;
+  }
+
+#view {}
+  #view .box {
+    white-space: pre;
+    font-family: monospace;
+  }
+  #view .error { color: red }
 </style>
 <body>
   <nav class="navbar" role="navigation">
     <div class="navbar-brand">
-      <a class="navbar-item" href="https://bulma.io">
-        jq-finder
+      <a class="navbar-item">
+        jiq
       </a>
       <button class="button navbar-burger">
         <span></span>
@@ -33,7 +41,7 @@ input, textarea, .panel {
   <footer class "footer">
     <div class="container">
       <div class="content has-text-centered">
-        <p><a href=https://github.com/fiatjaf/jq-finder>source</a></p>
+        <p><a href=https://github.com/fiatjaf/jiq-web>source</a></p>
         <p><a href=https://fiatjaf.alhur.es/>@fiatjaf</a></p>
       </div>
     </div>
