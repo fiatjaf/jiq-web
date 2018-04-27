@@ -1,7 +1,6 @@
-/* global Elm */
+/* global Elm, jq */
 
 const debounce = require('debounce')
-const jq = require('jq-web/jq.wasm.js')
 
 const target = document.querySelector('main')
 
@@ -18,17 +17,16 @@ function applyfilter ([input, filter]) {
     return
   }
 
-  try {
-    let res = jq.raw(input, filter)
-    app.ports.gotresult.send(res)
-  } catch (e) {
-    if (typeof e === 'string' && e.slice(0, 5) === 'abort') {
-      setTimeout(applyfilter, 500, [input, filter])
-      return
-    }
-
-    app.ports.goterror.send(e.message)
-  }
+  jq.promised.raw(input, filter)
+    .then(res => app.ports.gotresult.send(res))
+    .catch(e => {
+      if (typeof e === 'string' && e.slice(0, 5) === 'abort') {
+        setTimeout(applyfilter, 500, [input, filter])
+        return
+      }
+      console.error(e)
+      app.ports.goterror.send(e.message)
+    })
 
   localStorage.setItem('filter', filter)
   localStorage.setItem('input', input)

@@ -1,7 +1,6 @@
 {
   "dependencies": {
-    "debounce": "^1.1.0",
-    "jq-web": "0.2.1"
+    "debounce": "^1.1.0"
   },
   "devDependencies": {
     "browserify": "^11.0.1",
